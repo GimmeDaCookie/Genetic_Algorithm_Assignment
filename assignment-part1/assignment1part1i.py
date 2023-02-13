@@ -34,6 +34,7 @@ while True:
 
     #Check for convergence
     if population.count(TARGET_STRING) > 0:
+        print("found")
         break
 
     #Create a new population

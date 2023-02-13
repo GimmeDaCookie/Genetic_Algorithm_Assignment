@@ -103,11 +103,13 @@ class gp_funcs:
             current_std = choices[student]
             # print("\nWanted: '%d', Got: '%d'\n" % (current_std[1], lecturer))
 
-            for choice in current_std.values():
-                if choice == lecturer:
+            for index, ranking in enumerate(current_std.values()):
+
+                current = index + 1
+
+                if current == lecturer:
+                    fitness += (ranking - 1)
                     break
-                else:
-                    fitness += 1
             
             lecturer_counts[lecturer-1] += 1
             
@@ -117,28 +119,14 @@ class gp_funcs:
             if count > lecturer_capacity[1][i]:
                 fitness += 100
 
-        # print(fitness)
-        # print(len(genome) * len(choices[0]))
-                    
-        return (fitness / (len(genome) * len(choices[0])))
+        return (fitness / len(genome))
     
 
     def tournament_selection(self, population, fitness_array):
-        tournament_participants = random.sample(population, 4)
+        tournament_participants = random.sample(population, 5)
         tournament_fitness = [fitness_array[population.index(pos)] for pos in tournament_participants]
         # Select the best individual from the tournament
         return tournament_participants[tournament_fitness.index(min(tournament_fitness))]
-
-
-    def selection_function(self, population, fitness_func):
-        
-        # solutions with a higher fitness should be more likely to be chosen, 
-        # hence the use of weights
-        return random.choices(
-            population,
-            weights=[fitness_func(genome) for genome in population],
-            k=2 # simply means that we draw twice to get a pair from the population
-        )
 
 
     def crossover(self, parent1, parent2):
@@ -167,22 +155,7 @@ class gp_funcs:
         return parent1_dict1, parent2_dict1
 
 
-    def one_point_crossover(self, genome_a, genome_b):
-
-        # return if the Genomes are not atleast 2 in length, 
-        # or if one of the genomes is less than 2 in length
-        length = 2
-        length_a, length_b = len(genome_a), len(genome_b)
-        if (length_a < length > length_b) or (length_a != length_b):
-            return genome_a, genome_b
-        else:
-            length = length_a
-
-        cut_index = random.randint(1, length - 1)
-        return genome_a[0:cut_index] + genome_b[cut_index:], genome_b[0:cut_index] + genome_a[cut_index:]
-
-
-    def swapper_mutation(self, genome, num_rounds = 1, probability = 0.4):
+    def swapper_mutation(self, genome, num_rounds = 1, probability = 0.1):
 
         for _ in range(num_rounds):
 
@@ -208,27 +181,6 @@ class gp_funcs:
                     genome[pos2] = pos1_val # value at pos1 submitted into pos2
 
                     # print("\nmutated genome: '%s'\n" % str(genome))
-
-        return genome
-
-
-    def standard_mutation(self, genome, num_rounds = 1, probability = 0.2):
-
-        for _ in range(num_rounds):
-
-            index = random.randrange(len(genome))
-            if random.random() < probability:
-                genome[index] = abs(genome[index] - 1)
-
-        return genome
-
-    def advanced_mutation(self, genome, num_rounds = 1, probability = 0.2):
-
-        for _ in range(num_rounds):
-
-            index = random.randrange(len(genome))
-            if random.random() < probability:
-                genome[index] = abs(genome[index] - random.choices(self.composition, k=1)[0])
 
         return genome
 
@@ -304,8 +256,8 @@ class gp_funcs:
 
 def main():
 
-    student_file, supervisor_file = "Student-choices.xlsx", "Supervisors.xlsx"
-    population_size = 12
+    student_file, supervisor_file = "Student-Choices.xlsx", "Supervisors.xlsx"
+    population_size = 50
     target = 0.0
 
     # to use functions
@@ -315,7 +267,7 @@ def main():
     king, iterations, avg_fitness_per_gen, best_fitness, worst_fitness = gp.evolution(
         gp.generate_initial_population, 
         gp.fitness_function, gp.tournament_selection, 
-        gp.crossover, gp.swapper_mutation, 20000
+        gp.crossover, gp.swapper_mutation, 2000
     )
 
     # printing info to terminal and generating plots for this part
